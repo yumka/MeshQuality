@@ -1,0 +1,10 @@
+Mesh from box_0.vtu 
+Metric name: Condition  	  Total number of elements: 536
+Range  	 	  Number of elements 	 Percentage of elements 
+[      0.00       5.00]  	 536  	     100.00 
+Split range 
+[      0.00       1.00]  	 0  	       0.00 
+[      1.00       2.00]  	 512  	      95.52 
+[      2.00       3.00]  	 24  	       4.48 
+[      3.00       4.00]  	 0  	       0.00 
+[      4.00       5.00]  	 0  	       0.00 
