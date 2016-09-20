@@ -1,0 +1,4 @@
+Mesh from cycles_scours_0.vtu 
+Metric name: MinAngle  	  Total number of elements: 27886
+Interval  	 	  Number of elements 	 Percentage of elements 
+[      0.00       5.00]  	 6628  	      23.77 

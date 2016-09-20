@@ -1,0 +1,10 @@
+Mesh from mesh1_3d.e 
+Metric name: Condition  	  Total number of elements: 173
+Range  	 	  Number of elements 	 Percentage of elements 
+[      1.00       5.00]  	 173  	     100.00 
+Split range 
+[      1.00       1.80]  	 172  	      99.42 
+[      1.80       2.60]  	 1  	       0.58 
+[      2.60       3.40]  	 0  	       0.00 
+[      3.40       4.20]  	 0  	       0.00 
+[      4.20       5.00]  	 0  	       0.00 

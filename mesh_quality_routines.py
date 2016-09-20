@@ -9,18 +9,71 @@ def read_exodus_mesh(filename):
     """
     Reads unstructured grid from an Exodus file (.e, .exo)
     :param filename:
-    :return:
+    :return: grid, instanse of vtkXMLUnstructuredGridReader, containing pre-processed grid
     """
 
     reader =vtk.vtkExodusIIReader()
     reader.SetFileName(filename)
+
+    #reader.SetGlobalResultArrayStatus( 'Mesh Tetrahedron Quality', 1 )
     reader.Update() # Needed because of GetScalarRange
     exodus_structure = reader.GetOutput()
+    print 'EXO', exodus_structure
+    # raise
+    #
+    # geom =vtk.vtkCompositeDataGeometryFilter()
+    # geom.SetInputData(exodus_structure)
+    # geom.Update()
+    # grid= geom.GetOutput()
+    # print grid
+    # raise
+    # Convert vtkPolydata to vtkUnstructuredGrid using append filter
+    # append_filter = vtk.vtkAppendFilter()
+    # append_filter.AddInputData(grid)
+    # append_filter.Update()
+    # grid = append_filter.GetOutput()
+    grid = _read_exodusii_mesh(reader, filename)
+    return grid
 
-    geom =vtk.vtkCompositeDataGeometryFilter()
-    geom.SetInput(exodus_structure)
-    geom.Update()
-    grid= geom.GetOutput()
+def _read_exodusii_mesh( reader, file_name ):
+    #Uses a vtkExodusIIReader to return a vtkUnstructuredGrid.
+
+    reader.SetFileName( file_name )
+
+    # Fetch metadata.
+    # reader.UpdateInformation()
+    #
+    # # Make sure the point fields are read during Update()
+    # for k in xrange( reader.GetNumberOfPointResultArrays() ):
+    #    arr_name = reader.GetPointResultArrayName( k )
+    #    reader.SetPointResultArrayStatus( arr_name, 1 )
+
+    # Read the file.
+    reader.Update()
+    out = reader.GetOutput()
+    print out
+    append_filter = vtk.vtkAppendFilter()
+    #raise
+    # Loop through the blocks and search for a vtkUnstructuredGrid.
+    vtk_mesh = []
+    #for i in xrange( out.GetNumberOfBlocks() ):
+    for i in xrange(1):
+       blk = out.GetBlock( i )
+       print out.GetNumberOfBlocks()
+       for j in xrange( blk.GetNumberOfBlocks() ):
+           print blk.GetNumberOfBlocks()
+           sub_block = blk.GetBlock( j )
+           print 'here',  type(sub_block)
+           if sub_block.IsA( 'vtkUnstructuredGrid' ):
+               print 'inside'
+               vtk_mesh.append( sub_block )
+               append_filter.AddInputData(sub_block)
+    append_filter.Update()
+    grid = append_filter.GetOutput()
+    # if len(vtk_mesh) == 0:
+    #    raise IOError( 'No \'vtkUnstructuredGrid\' found!' )
+    # elif len(vtk_mesh) > 1:
+    #    raise IOError( 'More than one \'vtkUnstructuredGrid\' found!' )
 
     return grid
 
@@ -36,6 +89,11 @@ def read_unstructured_grid(filepath):
     reader.SetFileName(filepath)
     reader.Update()
     grid = reader.GetOutput()
+    append_filter = vtk.vtkAppendFilter()
+    append_filter.AddInputData(grid)
+    append_filter.Update()
+    grid = append_filter.GetOutput()
+
     return grid
 
 
@@ -51,7 +109,7 @@ def apply_quality(grid,metric):
     """
 
     qualityFilter=vtk.vtkMeshQuality()
-    qualityFilter.SetInput(grid)
+    qualityFilter.SetInputData(grid)
 
     metric_fun_name = 'SetTetQualityMeasureTo'+metric
 
@@ -74,23 +132,21 @@ def filter_quality(grid, qmin=0.0, qmax=float("inf"), array="Quality"):
     :return:
     """
     threshold = vtk.vtkThreshold()
-    threshold.SetInput(grid)
+    threshold.SetInputData(grid)
     threshold.ThresholdBetween(qmin, qmax)
     threshold.SetInputArrayToProcess(0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, array)
     threshold.Update()
     return threshold.GetOutput()
 
 
-
 def yield_background_grid_actor(grid):
 
-
     mapper = vtk.vtkDataSetMapper()
-    mapper.SetInput(grid)
+    mapper.SetInputData(grid)
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(0.0,1.0,0.0)
+    actor.GetProperty().SetColor(0.0,1.0,1.0)
     actor.GetProperty().SetOpacity(1.0)
     actor.GetProperty().LightingOff()
     actor.GetProperty().EdgeVisibilityOn()
@@ -101,7 +157,7 @@ def yield_background_grid_actor(grid):
 
 # see http://www.kennethmoreland.com/color-maps/
 def yield_lookup_table():
-    lookup_table = vtk.vtkLookupTable()
+    lookup_table = vtk.vtkLogLookupTable()
     num_colors = 256
     lookup_table.SetNumberOfTableValues(num_colors)
 
@@ -121,7 +177,7 @@ def yield_filtered_grid_actor(grid, quality_min, quality_max):
     lookup_table = yield_lookup_table()
 
     mapper = vtk.vtkDataSetMapper()
-    mapper.SetInput(grid)
+    mapper.SetInputData(grid)
     mapper.SetScalarRange(quality_min, quality_max)
     mapper.SetLookupTable(lookup_table)
     actor = vtk.vtkActor()
@@ -146,7 +202,7 @@ def yield_corner_annotation(metric, qmin, qmax, num_cells_showed):
     corner_annotation.SetText(0, metric_info)
     corner_annotation.SetText(2, filter_info)
     #color = vtk.vtkNamedColors().GetColor3d('warm_grey')
-    color = [0.5,0.5,0.5]
+    color = [0.8,0.5,0.5]
     corner_annotation.GetTextProperty().SetColor(color)
     return corner_annotation
 
@@ -192,9 +248,19 @@ def get_mesh_quality(filename,metric,qmin=None,qmax=None, n_int=None):
             print 'Wrong mesh format'
             raise Exception
 
+    print grid
+
 
     quality = apply_quality(grid, metric)
-
+    print quality.GetOutput()
+    #quality.SetGlobalResultArrayStatus( 'Mesh Tetrahedron Quality', 1 )
+    #raise
+    print quality.GetOutput().GetFieldData().GetArray('Mesh Triangle Quality').GetComponent(0,0)
+    print quality.GetOutput().GetFieldData().GetArray('Mesh Tetrahedron Quality').GetComponent(0,1)
+    print quality.GetOutput().GetFieldData().GetArray('Mesh Tetrahedron Quality').GetComponent(0,2)
+    print quality.GetOutput().GetFieldData().GetArray('Mesh Tetrahedron Quality').GetComponent(0,3)
+    print quality.GetOutput().GetFieldData().GetArray('Mesh Tetrahedron Quality').GetComponent(0,4)
+    #raise
     quality_min = quality.GetOutput().GetFieldData()\
         .GetArray('Mesh Tetrahedron Quality').GetComponent(0, 0)
     quality_max = quality.GetOutput().GetFieldData()\
