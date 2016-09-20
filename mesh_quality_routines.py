@@ -14,24 +14,7 @@ def read_exodus_mesh(filename):
 
     reader =vtk.vtkExodusIIReader()
     reader.SetFileName(filename)
-
-    #reader.SetGlobalResultArrayStatus( 'Mesh Tetrahedron Quality', 1 )
     reader.Update() # Needed because of GetScalarRange
-    exodus_structure = reader.GetOutput()
-    print 'EXO', exodus_structure
-    # raise
-    #
-    # geom =vtk.vtkCompositeDataGeometryFilter()
-    # geom.SetInputData(exodus_structure)
-    # geom.Update()
-    # grid= geom.GetOutput()
-    # print grid
-    # raise
-    # Convert vtkPolydata to vtkUnstructuredGrid using append filter
-    # append_filter = vtk.vtkAppendFilter()
-    # append_filter.AddInputData(grid)
-    # append_filter.Update()
-    # grid = append_filter.GetOutput()
     grid = _read_exodusii_mesh(reader, filename)
     return grid
 
@@ -40,20 +23,11 @@ def _read_exodusii_mesh( reader, file_name ):
 
     reader.SetFileName( file_name )
 
-    # Fetch metadata.
-    # reader.UpdateInformation()
-    #
-    # # Make sure the point fields are read during Update()
-    # for k in xrange( reader.GetNumberOfPointResultArrays() ):
-    #    arr_name = reader.GetPointResultArrayName( k )
-    #    reader.SetPointResultArrayStatus( arr_name, 1 )
-
     # Read the file.
     reader.Update()
     out = reader.GetOutput()
     print out
     append_filter = vtk.vtkAppendFilter()
-    #raise
     # Loop through the blocks and search for a vtkUnstructuredGrid.
     vtk_mesh = []
     #for i in xrange( out.GetNumberOfBlocks() ):
@@ -70,11 +44,6 @@ def _read_exodusii_mesh( reader, file_name ):
                append_filter.AddInputData(sub_block)
     append_filter.Update()
     grid = append_filter.GetOutput()
-    # if len(vtk_mesh) == 0:
-    #    raise IOError( 'No \'vtkUnstructuredGrid\' found!' )
-    # elif len(vtk_mesh) > 1:
-    #    raise IOError( 'More than one \'vtkUnstructuredGrid\' found!' )
-
     return grid
 
 
