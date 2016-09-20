@@ -1,4 +1,0 @@
-Mesh from fractures_adaptive.vtu 
-Metric name: MinAngle  	  Total number of elements: 3551
-Interval  	 	  Number of elements 	 Percentage of elements 
-[      0.00       5.00]  	 40  	       1.13 

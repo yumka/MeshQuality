@@ -1,4 +1,0 @@
-Mesh from fractures.vtu 
-Metric name: MinAngle  	  Total number of elements: 7208
-Interval  	 	  Number of elements 	 Percentage of elements 
-[      0.00       5.00]  	 45  	       0.62 

@@ -1,4 +1,0 @@
-Mesh from SPE10.vtu 
-Metric name: MinAngle  	  Total number of elements: 36160
-Interval  	 	  Number of elements 	 Percentage of elements 
-[      0.00       5.00]  	 8545  	      23.63 
